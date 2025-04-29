@@ -2,8 +2,6 @@
 
 A voxel-based sandbox game inspired by Minecraft, built with TypeScript, Three.js, and Vite.
 
-![Mini-Minecraft](https://via.placeholder.com/800x400?text=Mini-Minecraft)
-
 ## Features
 
 - **3D Voxel World**: Rendered using Three.js with efficient instanced mesh rendering
