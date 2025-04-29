@@ -11,7 +11,7 @@ document.body.appendChild(stats.dom);
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
 });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x80a0e0);
 document.body.appendChild(renderer.domElement);
@@ -40,18 +40,21 @@ function setupLights() {
   scene.add(light1);
 
   const light2 = new THREE.DirectionalLight();
-  light2.position.set(-1, -1, -0.5);
+  light2.position.set(-1, 1, -0.5);
   scene.add(light2);
 
+  // Directional light helper
+  const lightHelper = new THREE.DirectionalLightHelper(light2, 1);
+  scene.add(lightHelper);
+
   const ambient = new THREE.AmbientLight();
-  ambient.intensity = 0.5;
+  ambient.intensity = 0.1;
   scene.add(ambient);
 }
 
 // Render Loop
 function animate() {
   requestAnimationFrame(animate);
-  controls.update();
   renderer.render(scene, camera);
   stats.update();
 }
