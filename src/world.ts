@@ -56,14 +56,37 @@ export class World extends THREE.Group {
     this.size = size;
   }
 
+  generateResources(rng: RNG) {
+    // generating 3d noise
+    const simplex = new SimplexNoise(rng);
+
+    for (let x=0; x < this.size.width; x++) {
+      for (let y=0; y < this.size.height; y++) {
+        for (let z=0; z < this.size.width; z++) {
+              const values = simplex.noise3d(
+                x / blocks.stone.scale.x, 
+                y / blocks.stone.scale.y,
+                z / blocks.stone.scale.z
+              );
+
+              if (values > blocks.stone.scarcity) {
+                this.setBlockId(x, y, z, blocks.stone.id);
+              }
+        }
+      }
+    }
+  }
+
   /**
    * Main method to generate the world.
    * Initializes terrain data structure, generates terrain based on simplex noise,
    * and creates the 3D mesh representation.
    */
   generate() {
+    const rng: RNG = new RNG(this.params.seed);
     this.initializeTerrain();
-    this.generateTerrain();
+    this.generateResources(rng);
+    this.generateTerrain(rng);
     this.generateMeshes();
   }
 
@@ -94,8 +117,8 @@ export class World extends THREE.Group {
    * Creates a heightmap based on noise values and places blocks accordingly.
    * Dirt blocks are placed below the surface, and grass blocks on top.
    */
-  generateTerrain() {
-    const rng = new RNG(this.params.seed);
+  generateTerrain(rng: RNG) {
+
     const simplex = new SimplexNoise(rng);
     
     for (let x=0; x < this.size.width; x++) {
@@ -116,12 +139,12 @@ export class World extends THREE.Group {
         height = Math.max(0, Math.min(height, this.size.height - 1));
 
         // set the block id for the generated terrain
-        for (let y=0; y <= height; y++) {
-          if (y < height) {
+        for (let y=0; y <= this.size.height; y++) {
+          if (y < height && this.getBlock(x, y, z)?.id === blocks.empty.id) {
             this.setBlockId(x, y, z, blocks.dirt.id);
           } else if (y === height) {
             this.setBlockId(x, y, z, blocks.grass.id);
-          } else {
+          } else if (y > height) {
             this.setBlockId(x, y, z, blocks.empty.id);
           }
         }
