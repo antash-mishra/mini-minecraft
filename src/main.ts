@@ -8,11 +8,11 @@ const stats = new Stats();
 document.body.appendChild(stats.dom);
 
 // Renderer Setup
-const renderer = new THREE.WebGLRenderer({
-  antialias: true,
-});
+const renderer = new THREE.WebGLRenderer();
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setClearColor(0x80a0e0);
 document.body.appendChild(renderer.domElement);
 
@@ -25,7 +25,6 @@ camera.lookAt(0,0,0);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(16, 0, 16);
 controls.enableDamping = true;
-controls.update();
 
 // Scene Setup
 const scene = new THREE.Scene();
@@ -35,16 +34,22 @@ scene.add(world);
 
 // Lights Setup
 function setupLights() {
-  const light1 = new THREE.DirectionalLight();
-  light1.position.set(1, 1, 1);
-  scene.add(light1);
+  const sun = new THREE.DirectionalLight();
+  sun.position.set(50, 50, 50);
+  sun.castShadow = true;
+  sun.shadow.camera.near = 0.1;
+  sun.shadow.camera.far = 100;
+  sun.shadow.camera.left = -50;
+  sun.shadow.camera.right = 50;
+  sun.shadow.camera.top = 50;
+  sun.shadow.camera.bottom = -50;
+  sun.shadow.mapSize.set(512, 512);
+  sun.shadow.bias = -0.0001;
+  scene.add(sun);
 
-  const light2 = new THREE.DirectionalLight();
-  light2.position.set(-1, 1, -0.5);
-  scene.add(light2);
 
   // Directional light helper
-  const lightHelper = new THREE.DirectionalLightHelper(light2, 1);
+  const lightHelper = new THREE.CameraHelper(sun.shadow.camera);
   scene.add(lightHelper);
 
   const ambient = new THREE.AmbientLight();
@@ -56,6 +61,7 @@ function setupLights() {
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
+  controls.update();
   stats.update();
 }
 
