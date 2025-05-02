@@ -1,10 +1,11 @@
 import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
 import { World } from "./world";
 import { resources } from "./blocks";
+import { Player } from "./player";
 
 
 
-export function createUI(world: World) {
+export function createUI(world: World, player: Player) {
   const gui = new GUI();
 
   gui.add(world.size, 'width' as keyof typeof world.size, 8, 128, 1).name('width');
@@ -26,6 +27,10 @@ export function createUI(world: World) {
     scaleFolder.add(resource.scale, 'y', 10, 100).name('y');
     scaleFolder.add(resource.scale, 'z', 10, 100).name('z');
   });
+
+  const playerFolder = gui.addFolder('Player');
+  playerFolder.add(player, 'maxSpeed', 1, 20).name('maxSpeed');
+  playerFolder.add(player.cameraHelper, 'visible').name('show camera helper');
 
   gui.onChange(() => {
     world.generate();
