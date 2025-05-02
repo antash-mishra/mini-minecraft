@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { SimplexNoise } from 'three/examples/jsm/Addons.js';
 import { RNG } from './rng.ts';
-import { blocks } from './blocks.ts';
+import { blocks, resources } from './blocks.ts';
 
 const geometry = new THREE.BoxGeometry();
 const material = new THREE.MeshLambertMaterial();
@@ -59,22 +59,23 @@ export class World extends THREE.Group {
   generateResources(rng: RNG) {
     // generating 3d noise
     const simplex = new SimplexNoise(rng);
+    resources.forEach(resource => {
+      for (let x=0; x < this.size.width; x++) {
+        for (let y=0; y < this.size.height; y++) {
+          for (let z=0; z < this.size.width; z++) {
+            const values = simplex.noise3d(
+              x / resource.scale.x, 
+              y / resource.scale.y,
+              z / resource.scale.z
+            );
 
-    for (let x=0; x < this.size.width; x++) {
-      for (let y=0; y < this.size.height; y++) {
-        for (let z=0; z < this.size.width; z++) {
-              const values = simplex.noise3d(
-                x / blocks.stone.scale.x, 
-                y / blocks.stone.scale.y,
-                z / blocks.stone.scale.z
-              );
-
-              if (values > blocks.stone.scarcity) {
-                this.setBlockId(x, y, z, blocks.stone.id);
-              }
+            if (values  > resource.scarcity) {
+              this.setBlockId(x, y, z, resource.id);
+            }
+          }
         }
       }
-    }
+    });
   }
 
   /**
@@ -163,8 +164,23 @@ export class World extends THREE.Group {
 
     // number of blocks in the world
     const max_count = this.size.width * this.size.height * this.size.width;
-    const mesh = new THREE.InstancedMesh(geometry, material, max_count)  
-    mesh.count = 0;
+    
+    
+    const meshes = {};
+    
+    Object.values(blocks)
+      .filter(blockType => blockType.id !== blocks.empty.id)
+      .forEach(blockType => {
+        // Check if blockType has material property before accessing it
+        if ('material' in blockType) {
+          const mesh = new THREE.InstancedMesh(geometry, blockType.material, max_count);
+          mesh.count = 0;
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          meshes[blockType.id] = mesh;
+        }
+      });
+
     const matrix = new THREE.Matrix4();
     for (let x=0; x < this.size.width; x++) {
       for (let y =0; y < this.size.height; y++) {
@@ -172,17 +188,18 @@ export class World extends THREE.Group {
           // get block
           const blockId = this.getBlock(x, y, z)?.id;
           // get current instance id
-          const instanceId = mesh.count;
-          const blockType = Object.values(blocks).find(b => b.id === blockId);
-          // if block is non-empty, set the matrix and instance id
-          if (blockId !== blocks.empty.id && !this.isBlockObscured(x, y, z)) {
-            matrix.setPosition(x+0.5, y+0.5, z+0.5);
+          
+          if (blockId === blocks.empty.id) {
+            continue;
+          }
 
+          const mesh = meshes[blockId];
+          const instanceId = mesh.count;
+
+          // if block is non-empty, set the matrix and instance id
+          if (!this.isBlockObscured(x, y, z)) {
+            matrix.setPosition(x+0.5, y+0.5, z+0.5);
             mesh.setMatrixAt(instanceId, matrix);
-            // Check if blockType has a color property before using it
-            if (blockType && 'color' in blockType) {
-              mesh.setColorAt(instanceId, new THREE.Color(blockType.color));
-            }
             this.setBlockInstanceId(x, y, z, instanceId);
             mesh.count++;
           }
@@ -190,7 +207,7 @@ export class World extends THREE.Group {
       }
     }
     // add the instanced mesh to the world
-    this.add(mesh);
+    this.add(...Object.values(meshes));
   }
 
   /**
