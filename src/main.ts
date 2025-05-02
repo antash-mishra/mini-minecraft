@@ -3,6 +3,7 @@ import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { World } from './world';
 import { createUI } from './ui';
+import { Player } from './player';
 
 const stats = new Stats();
 document.body.appendChild(stats.dom);
@@ -17,12 +18,12 @@ renderer.setClearColor(0x80a0e0);
 document.body.appendChild(renderer.domElement);
 
 // Camera Setup
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight);
-camera.position.set(-32, 16, -32);
-camera.lookAt(0,0,0);
+const orbitCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight);
+orbitCamera.position.set(-32, 16, -32);
+orbitCamera.lookAt(0,0,0);
 
 // Controls Setup
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(orbitCamera, renderer.domElement);
 controls.target.set(16, 0, 16);
 controls.enableDamping = true;
 
@@ -31,6 +32,9 @@ const scene = new THREE.Scene();
 const world = new World();
 world.generate();
 scene.add(world);
+
+// add player
+const player = new Player(scene); 
 
 // Lights Setup
 function setupLights() {
@@ -57,20 +61,32 @@ function setupLights() {
   scene.add(ambient);
 }
 
+let previousTime = performance.now();
+
 // Render Loop
 function animate() {
+  const currentTime = performance.now();
+  const dt = (currentTime - previousTime) / 1000;
+
+  player.applyInput(dt);
+
   requestAnimationFrame(animate);
-  renderer.render(scene, camera);
+  renderer.render(scene, player.controls.isLocked ? player.camera : orbitCamera);
   controls.update();
   stats.update();
+
+  previousTime = currentTime;
 }
 
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+  orbitCamera.aspect = window.innerWidth / window.innerHeight;
+  orbitCamera.updateProjectionMatrix();
+  player.camera.aspect = window.innerWidth / window.innerHeight;
+  player.camera.updateProjectionMatrix();
+  
   renderer.setSize(window.innerWidth, window.innerHeight);
 })
 
 setupLights();
-createUI(world);
+createUI(world, player);
 animate();
