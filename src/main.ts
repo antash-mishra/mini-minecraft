@@ -10,7 +10,9 @@ const stats = new Stats();
 document.body.appendChild(stats.dom);
 
 // Renderer Setup
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+});
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
@@ -72,10 +74,11 @@ function animate() {
   const currentTime = performance.now();
   const dt = (currentTime - previousTime) / 1000;
 
+  if (player.controls.isLocked) {
   physics.update(dt, player, world);
-
+  }
+  
   renderer.render(scene, player.controls.isLocked ? player.camera : orbitCamera);
-  controls.update();
   stats.update();
 
   previousTime = currentTime;

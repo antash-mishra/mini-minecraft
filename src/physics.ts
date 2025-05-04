@@ -91,7 +91,6 @@ export class Physics {
       }
     }
 
-    console.log(`Found ${candidates.length} candidates`);
     return candidates;
   }
 

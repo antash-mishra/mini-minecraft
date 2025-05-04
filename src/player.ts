@@ -25,7 +25,7 @@ export class Player {
   controls: PointerLockControls = new PointerLockControls(this.camera, document.body);
 
   constructor(scene: THREE.Scene) {
-    this.position.set(32, 10, 32);
+    this.position.set(32, 20, 32);
     scene.add(this.camera);
     scene.add(this.cameraHelper);
   
@@ -94,7 +94,7 @@ export class Player {
         this.input.x = this.maxSpeed;
         break;
       case 'r':
-        this.position.set(32, 16, 32);
+        this.position.set(32, 10, 32);
         this.velocity.set(0, 0, 0);
         break;
       case ' ':

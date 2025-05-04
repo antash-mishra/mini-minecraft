@@ -8,8 +8,8 @@ import { Player } from "./player";
 export function createUI(world: World, player: Player) {
   const gui = new GUI();
 
-  gui.add(world.size, 'width' as keyof typeof world.size, 8, 128, 1).name('width');
-  gui.add(world.size, 'height' as keyof typeof world.size, 8, 128, 1).name('height');
+  gui.add(world.chunkSize, 'width' as keyof typeof world.chunkSize, 8, 128, 1).name('width');
+  gui.add(world.chunkSize, 'height' as keyof typeof world.chunkSize, 8, 128, 1).name('height');
 
   const terrainFolder = gui.addFolder('Terrain');
   terrainFolder.add(world.params, 'seed', 0, 10000).name('seed');
