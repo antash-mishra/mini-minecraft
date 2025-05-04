@@ -3,8 +3,7 @@ import { SimplexNoise } from 'three/examples/jsm/Addons.js';
 import { RNG } from './rng.ts';
 import { blocks, resources } from './blocks.ts';
 
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshLambertMaterial();
+const geometry = new THREE.BoxGeometry(1, 1, 1);
 
 /**
  * Represents a voxel-based 3D world composed of blocks.
@@ -17,7 +16,7 @@ export class World extends THREE.Group {
    * @property {number} width - Width of the world in blocks.
    * @property {number} height - Height of the world in blocks.
    */
-  public size: {width: number, height: number};
+  public size: {width: number, height: number} = {width: 64, height: 16};
 
 /**
  * Stores data about each block in the world in a 3D array structure.
@@ -51,7 +50,7 @@ export class World extends THREE.Group {
    * @param {number} size.width - Width of the world in blocks (default: 32).
    * @param {number} size.height - Height of the world in blocks (default: 32).
    */
-  constructor(size = {width: 64, height: 32}) {
+  constructor(size = {width: 64, height: 16}) {
     super();
     this.size = size;
   }
@@ -160,7 +159,7 @@ export class World extends THREE.Group {
    */
   generateMeshes() {
     // clear all existing blocks
-    this.clear();
+    this.disposeChildren();
 
     // number of blocks in the world
     const max_count = this.size.width * this.size.height * this.size.width;
@@ -198,7 +197,7 @@ export class World extends THREE.Group {
 
           // if block is non-empty, set the matrix and instance id
           if (!this.isBlockObscured(x, y, z)) {
-            matrix.setPosition(x+0.5, y+0.5, z+0.5);
+            matrix.setPosition(x, y, z);
             mesh.setMatrixAt(instanceId, matrix);
             this.setBlockInstanceId(x, y, z, instanceId);
             mesh.count++;
@@ -290,5 +289,12 @@ export class World extends THREE.Group {
       return false;
     }
     return true;
+  }
+
+  disposeChildren() {
+    this.traverse(obj => {
+      if (obj.dispose) obj.dispose();
+    })
+    this.clear()
   }
 }  
